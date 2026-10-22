@@ -1,370 +1,133 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AuraTune - 感情と風景から音をディグる</title>
-    <!-- PWA Manifest & Icons -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0d0f17">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="AuraTune">
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        dark: {
-                            bg: '#0d0f17',
-                            card: '#161926',
-                            border: '#262b40',
-                            accent: '#6366f1'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        body {
-            background-color: #0d0f17;
-            color: #f3f4f6;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .glow-btn {
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
-            transition: all 0.3s ease;
-        }
-        .glow-btn:hover {
-            box-shadow: 0 0 30px rgba(99, 102, 241, 0.7);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AuraTune - 感情や風景から音をディグる</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- PWA Settings -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="AuraTune">
+  
+  <style>
+    body {
+      background-color: #0b0f19;
+      color: #f3f4f6;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+  </style>
 </head>
-<body class="min-h-screen pb-20 flex flex-col items-center">
+<body class="min-h-screen flex flex-col justify-between p-4 max-w-md mx-auto">
 
-    <!-- Header -->
-    <header class="w-full max-w-md p-4 flex items-center justify-between border-b border-dark-border sticky top-0 bg-dark-bg/90 backdrop-blur z-50">
-        <div class="flex items-center gap-2">
-            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center font-bold text-white shadow-lg">
-                <i data-lucide="disc" class="w-5 h-5 animate-spin-slow"></i>
-            </div>
-            <span class="font-bold text-xl tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-pink-400">AuraTune</span>
-            <span class="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-500/30 font-semibold">BETA</span>
+  <!-- ヘッダー -->
+  <header class="flex items-center justify-between py-3 border-b border-gray-800">
+    <div class="flex items-center space-x-2">
+      <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm">🎶</div>
+      <h1 class="text-lg font-bold tracking-wider bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">AuraTune</h1>
+    </div>
+    <span class="text-xs px-2 py-0.5 rounded-full bg-purple-900/60 text-purple-300 border border-purple-700/50">BETA</span>
+  </header>
+
+  <!-- メインコンテンツ -->
+  <main class="my-auto space-y-6 py-4">
+    <div class="space-y-2 text-center">
+      <h2 class="text-xl font-bold tracking-tight">感情または風景から<span class="text-purple-400">音を掘り出す</span></h2>
+      <p class="text-xs text-gray-400">写真または今の気分を入力してください。AIが雰囲気を解析し、普段出会えないインディーズ・アングラ名曲を提案します。</p>
+    </div>
+
+    <!-- アップロードエリア -->
+    <div class="space-y-2">
+      <div class="flex justify-between text-xs text-gray-400 px-1">
+        <span>01. ビジュアルインプット</span>
+        <span>写真 / カメラ</span>
+      </div>
+      <label class="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-gray-700 rounded-2xl cursor-pointer bg-gray-900/40 hover:bg-gray-800/50 transition">
+        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+          <div class="w-10 h-10 mb-2 rounded-full bg-purple-600/20 text-purple-400 flex items-center justify-center">
+            ☁️
+          </div>
+          <p class="text-xs text-gray-400"><span class="font-semibold text-purple-400">タップして写真を選択</span> または撮影</p>
         </div>
-    </header>
+        <input type="file" id="imageInput" accept="image/*" class="hidden" onchange="handleImage(event)">
+      </label>
+    </div>
 
-    <!-- Main Content -->
-    <main class="w-full max-w-md p-4 space-y-6 flex-1">
+    <!-- プレビューと結果表示エリア -->
+    <div id="resultArea" class="hidden space-y-4">
+      <div id="previewContainer" class="w-full h-40 rounded-xl overflow-hidden bg-black border border-gray-800 relative">
+        <img id="imagePreview" class="w-full h-full object-cover" alt="Selected">
+      </div>
+      
+      <button onclick="analyzeAura()" class="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold rounded-xl shadow-lg transition text-sm">
+        この雰囲気で曲を探す ✨
+      </button>
+    </div>
 
-        <!-- Intro -->
-        <div class="text-center space-y-2 my-2">
-            <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400">
-                感情または風景から <span class="text-indigo-400">音を掘り出す</span>
-            </h1>
-            <p class="text-xs text-gray-400 leading-relaxed">
-                写真または今の気分を入力してください。AIが雰囲気を解析し、普段出会えないインディーズ・アングラ名曲を提案します。
-            </p>
-        </div>
-
-        <!-- 01. Visual Input -->
-        <div class="bg-dark-card border border-dark-border rounded-2xl p-4 space-y-3">
-            <div class="flex items-center justify-between text-xs font-semibold text-gray-400">
-                <span class="flex items-center gap-1 text-indigo-400"><i data-lucide="camera" class="w-4 h-4"></i> 01. ビジュアルインプット</span>
-                <span>写真 / カメラ</span>
-            </div>
-            
-            <div id="drop-zone" class="border-2 border-dashed border-dark-border rounded-xl p-6 text-center flex flex-col items-center justify-center space-y-3 bg-dark-bg/50 hover:border-indigo-500/50 transition cursor-pointer relative overflow-hidden">
-                <input type="file" id="image-input" accept="image/*" class="hidden">
-                <div id="preview-container" class="hidden absolute inset-0 bg-cover bg-center z-10 flex items-center justify-center">
-                    <button id="remove-img" class="absolute top-2 right-2 bg-black/70 text-white p-1.5 rounded-full hover:bg-black z-20">
-                        <i data-lucide="x" class="w-4 h-4"></i>
-                    </button>
-                </div>
-                
-                <div class="w-12 h-12 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
-                    <i data-lucide="upload-cloud" class="w-6 h-6"></i>
-                </div>
-                <div class="space-y-1">
-                    <p class="text-sm font-medium">ドラッグ＆ドロップ または 選択</p>
-                    <p class="text-[11px] text-gray-500">いま目の前にある空、部屋、街並みなど</p>
-                </div>
-                <div class="flex gap-2 text-xs pt-1">
-                    <button type="button" id="btn-gallery" class="px-3 py-1.5 rounded-lg bg-dark-border hover:bg-gray-700 flex items-center gap-1.5 transition">
-                        <i data-lucide="image" class="w-3.5 h-3.5"></i> フォルダから
-                    </button>
-                    <button type="button" id="btn-camera" class="px-3 py-1.5 rounded-lg bg-dark-border hover:bg-gray-700 flex items-center gap-1.5 transition">
-                        <i data-lucide="aperture" class="w-3.5 h-3.5"></i> カメラ起動
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 02. Mood Input -->
-        <div class="bg-dark-card border border-dark-border rounded-2xl p-4 space-y-3">
-            <div class="flex items-center justify-between text-xs font-semibold text-gray-400">
-                <span class="flex items-center gap-1 text-pink-400"><i data-lucide="heart-handshake" class="w-4 h-4"></i> 02. 気分・感情インプット</span>
-                <span>テキスト / タグ</span>
-            </div>
-            
-            <div class="relative">
-                <input type="text" id="mood-input" placeholder="例: 夜勤明けで心地よい疲労感、エモい雨の夜..." class="w-full bg-dark-bg border border-dark-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-pink-500 transition pr-10">
-                <button id="mic-btn" class="absolute right-3 top-3 text-gray-400 hover:text-pink-400 transition">
-                    <i data-lucide="mic" class="w-4 h-4"></i>
-                </button>
-            </div>
-
-            <!-- Quick Presets -->
-            <div class="space-y-1.5">
-                <p class="text-[11px] text-gray-500">クイックプリセット:</p>
-                <div class="flex flex-wrap gap-1.5">
-                    <button class="preset-tag text-xs bg-dark-bg border border-dark-border px-2.5 py-1 rounded-full hover:border-pink-500/50 transition">🌃 脱力感</button>
-                    <button class="preset-tag text-xs bg-dark-bg border border-dark-border px-2.5 py-1 rounded-full hover:border-pink-500/50 transition">⚡ ソワソワ</button>
-                    <button class="preset-tag text-xs bg-dark-bg border border-dark-border px-2.5 py-1 rounded-full hover:border-pink-500/50 transition">🌧️ 雨チル</button>
-                    <button class="preset-tag text-xs bg-dark-bg border border-dark-border px-2.5 py-1 rounded-full hover:border-pink-500/50 transition">🚘 深夜ドライブ</button>
-                    <button class="preset-tag text-xs bg-dark-bg border border-dark-border px-2.5 py-1 rounded-full hover:border-pink-500/50 transition">🕯️ 孤独・静寂</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Action Button -->
-        <button id="search-btn" class="w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 font-bold text-white shadow-xl glow-btn flex items-center justify-center gap-2 active:scale-95 transition">
-            <i data-lucide="sparkles" class="w-5 h-5"></i>
-            <span>この雰囲気で探す</span>
+    <!-- 検索結果（仮モック・AI提案用） -->
+    <div id="songResult" class="hidden space-y-3 bg-gray-900/80 p-4 rounded-xl border border-gray-800">
+      <h3 class="text-xs font-semibold text-purple-400 tracking-wider">RECOMMENDED TRACK</h3>
+      <div class="space-y-1">
+        <div id="trackTitle" class="font-bold text-base">---</div>
+        <div id="artistName" class="text-xs text-gray-400">---</div>
+      </div>
+      <div class="flex gap-2 pt-2">
+        <button id="appleMusicBtn" class="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-xs font-semibold rounded-lg text-center transition">
+           Apple Musicで聴く
         </button>
+      </div>
+    </div>
+  </main>
 
-        <!-- Results Section (Hidden initially) -->
-        <div id="results-section" class="hidden space-y-5 pt-4 border-t border-dark-border">
-            
-            <!-- AI Vibe Summary -->
-            <div class="bg-indigo-950/40 border border-indigo-500/30 rounded-2xl p-4 space-y-2">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold text-indigo-400 flex items-center gap-1">
-                        <i data-lucide="cpu" class="w-4 h-4"></i> AIバイブス解析完了
-                    </span>
-                    <span id="vibe-bpm" class="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-full">BPM: 85-105</span>
-                </div>
-                <p id="vibe-summary" class="text-xs text-gray-300 leading-relaxed">
-                    写真の青暗いトーンと深夜の静けさがマッチ。都会の孤独感と透明感のあるシンセ、浮遊感のあるトラックを選曲しました。
-                </p>
-            </div>
+  <!-- フッター -->
+  <footer class="text-center py-2 text-[10px] text-gray-600">
+    &copy; 2026 AuraTune
+  </footer>
 
-            <!-- Playlist Canvas Cover -->
-            <div class="relative rounded-2xl overflow-hidden border border-dark-border aspect-square bg-dark-card flex flex-col items-center justify-center shadow-2xl">
-                <canvas id="cover-canvas" class="w-full h-full object-cover"></canvas>
-                <div class="absolute bottom-3 left-3 right-3 bg-black/60 backdrop-blur-md p-3 rounded-xl border border-white/10 text-white">
-                    <p id="generated-playlist-title" class="font-bold text-sm">Midnight Solitude Vibe</p>
-                    <p class="text-[10px] text-gray-300">AuraTune AI Curated Playlist</p>
-                </div>
-            </div>
-
-            <!-- Track List -->
-            <div class="space-y-3">
-                <h3 class="text-sm font-bold text-gray-300 flex items-center gap-1.5">
-                    <i data-lucide="music-4" class="w-4 h-4 text-pink-400"></i> 発掘されたトラック (3曲)
-                </h3>
-                <div id="track-container" class="space-y-2.5">
-                    <!-- Dynamic Tracks Inserted Here -->
-                </div>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- Audio Player Element -->
-    <audio id="audio-player" class="hidden"></audio>
-
-    <script>
-        // Init Lucide Icons
-        lucide.createIcons();
-
-        // Sample Track Database (Royalty-Free & High Vibe)
-        const trackDatabase = [
-            {
-                title: "Cyber Neon Drift",
-                artist: "Køsta / HyperVibe",
-                genre: "Hyperpop / Lo-Fi",
-                url: "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3",
-                comment: "深い低音と切ないピアノフレーズが深夜の静けさにリンク。",
-                spotifyQuery: "Cyber Neon Drift Kosta",
-                appleQuery: "Cyber Neon Drift Kosta",
-                ytQuery: "Cyber Neon Drift Kosta"
-            },
-            {
-                title: "Floating Rain Echoes",
-                artist: "LIL_GHOST",
-                genre: "Ambient Wave",
-                url: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73467.mp3?filename=chill-abstract-intention-12099.mp3",
-                comment: "脱力感のある浮遊感トラック。雨や静寂な雰囲気にアジャスト。",
-                spotifyQuery: "Floating Rain Echoes LIL_GHOST",
-                appleQuery: "Floating Rain Echoes LIL_GHOST",
-                ytQuery: "Floating Rain Echoes LIL_GHOST"
-            },
-            {
-                title: "Night-Shift Glow",
-                artist: "Cielo & Asstoro",
-                genre: "Cloud Rap / Chill",
-                url: "https://cdn.pixabay.com/download/audio/2022/11/06/audio_c6f2a89326.mp3?filename=ambient-piano-amp-strings-10711.mp3",
-                comment: "疲れを包み込む柔らかなボーカルチューン。夜勤明けのチルタイムに最適。",
-                spotifyQuery: "Night-Shift Glow Cielo Asstoro",
-                appleQuery: "Night-Shift Glow Cielo Asstoro",
-                ytQuery: "Night-Shift Glow Cielo Asstoro"
-            }
-        ];
-
-        // UI References
-        const dropZone = document.getElementById('drop-zone');
-        const imageInput = document.getElementById('image-input');
-        const previewContainer = document.getElementById('preview-container');
-        const removeImgBtn = document.getElementById('remove-img');
-        const btnGallery = document.getElementById('btn-gallery');
-        const btnCamera = document.getElementById('btn-camera');
-        const moodInput = document.getElementById('mood-input');
-        const presetTags = document.querySelectorAll('.preset-tag');
-        const searchBtn = document.getElementById('search-btn');
-        const resultsSection = document.getElementById('results-section');
-        const audioPlayer = document.getElementById('audio-player');
-        const coverCanvas = document.getElementById('cover-canvas');
-
-        let selectedImageSrc = null;
-        let playingAudioUrl = null;
-
-        // Image Select Handlers
-        btnGallery.addEventListener('click', () => {
-            imageInput.removeAttribute('capture');
-            imageInput.click();
-        });
-
-        btnCamera.addEventListener('click', () => {
-            imageInput.setAttribute('capture', 'environment');
-            imageInput.click();
-        });
-
-        imageInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    selectedImageSrc = event.target.result;
-                    previewContainer.style.backgroundImage = `url(${selectedImageSrc})`;
-                    previewContainer.classList.remove('hidden');
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        removeImgBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            selectedImageSrc = null;
-            imageInput.value = '';
-            previewContainer.classList.add('hidden');
-        });
-
-        // Preset Tags
-        presetTags.forEach(tag => {
-            tag.addEventListener('click', () => {
-                const text = tag.innerText.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}]/gu, '').trim();
-                moodInput.value = text;
-            });
-        });
-
-        // Search Action
-        searchBtn.addEventListener('click', () => {
-            searchBtn.disabled = true;
-            searchBtn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> バイブスを解析中...`;
-            lucide.createIcons();
-
-            setTimeout(() => {
-                searchBtn.disabled = false;
-                searchBtn.innerHTML = `<i data-lucide="sparkles" class="w-5 h-5"></i> <span>この雰囲気で探す</span>`;
-                lucide.createIcons();
-
-                renderResults();
-                resultsSection.classList.remove('hidden');
-                resultsSection.scrollIntoView({ behavior: 'smooth' });
-            }, 1200);
-        });
-
-        // Render Canvas Cover & Tracks
-        function renderResults() {
-            // Draw Canvas Cover
-            const ctx = coverCanvas.getContext('2d');
-            coverCanvas.width = 400;
-            coverCanvas.height = 400;
-
-            const grad = ctx.createLinearGradient(0, 0, 400, 400);
-            grad.addColorStop(0, '#1e1b4b');
-            grad.addColorStop(0.5, '#311042');
-            grad.addColorStop(1, '#0f172a');
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, 400, 400);
-
-            // Abstract Circles
-            for (let i = 0; i < 5; i++) {
-                ctx.beginPath();
-                ctx.arc(Math.random() * 400, Math.random() * 400, Math.random() * 150 + 50, 0, Math.PI * 2);
-                ctx.fillStyle = i % 2 === 0 ? 'rgba(99, 102, 241, 0.15)' : 'rgba(236, 72, 153, 0.12)';
-                ctx.fill();
-            }
-
-            // Render Track List UI
-            const trackContainer = document.getElementById('track-container');
-            trackContainer.innerHTML = '';
-
-            trackDatabase.forEach((track, index) => {
-                const item = document.createElement('div');
-                item.className = "bg-dark-card border border-dark-border rounded-xl p-3 space-y-2 hover:border-gray-700 transition";
-                item.innerHTML = `
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <button onclick="playTrack('${track.url}', this)" class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center hover:scale-105 transition active:scale-95">
-                                <i data-lucide="play" class="w-5 h-5 fill-current"></i>
-                            </button>
-                            <div>
-                                <p class="font-bold text-sm text-white">${track.title}</p>
-                                <p class="text-xs text-gray-400">${track.artist} • <span class="text-indigo-400">${track.genre}</span></p>
-                            </div>
-                        </div>
-                    </div>
-                    <p class="text-[11px] text-gray-400 bg-dark-bg/60 p-2 rounded-lg border border-dark-border/50">
-                        💡 ${track.comment}
-                    </p>
-                    <div class="flex gap-2 pt-1">
-                        <a href="https://open.spotify.com/search/${encodeURIComponent(track.spotifyQuery)}" target="_blank" class="flex-1 py-1.5 rounded-lg bg-[#1DB954]/20 border border-[#1DB954]/40 text-[#1DB954] text-[11px] font-bold flex items-center justify-center gap-1 hover:bg-[#1DB954]/30 transition">
-                            Spotify
-                        </a>
-                        <a href="https://music.apple.com/jp/search?term=${encodeURIComponent(track.appleQuery)}" target="_blank" class="flex-1 py-1.5 rounded-lg bg-[#FA243C]/20 border border-[#FA243C]/40 text-[#FA243C] text-[11px] font-bold flex items-center justify-center gap-1 hover:bg-[#FA243C]/30 transition">
-                            Apple Music
-                        </a>
-                        <a href="https://www.youtube.com/results?search_query=${encodeURIComponent(track.ytQuery)}" target="_blank" class="flex-1 py-1.5 rounded-lg bg-[#FF0000]/20 border border-[#FF0000]/40 text-[#FF0000] text-[11px] font-bold flex items-center justify-center gap-1 hover:bg-[#FF0000]/30 transition">
-                            YouTube
-                        </a>
-                    </div>
-                `;
-                trackContainer.appendChild(item);
-            });
-            lucide.createIcons();
+  <script>
+    function handleImage(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('imagePreview').src = e.target.result;
+          document.getElementById('resultArea').classList.remove('hidden');
         }
+        reader.readAsDataURL(file);
+      }
+    }
 
-        // Play Audio Logic
-        window.playTrack = function(url, btn) {
-            if (playingAudioUrl === url && !audioPlayer.paused) {
-                audioPlayer.pause();
-                btn.innerHTML = `<i data-lucide="play" class="w-5 h-5 fill-current"></i>`;
-                playingAudioUrl = null;
-            } else {
-                audioPlayer.src = url;
-                audioPlayer.play();
-                playingAudioUrl = url;
-                btn.innerHTML = `<i data-lucide="pause" class="w-5 h-5 fill-current"></i>`;
-            }
-            lucide.createIcons();
-        };
-    </script>
+    function analyzeAura() {
+      // 解析中のモック動作 ＆ サンプルとしてアングラ・インディーズ枠の曲を設定
+      const mockTracks = [
+        { title: "ephemeral", artist: "lilbesh ramko" },
+        { title: "Awake", artist: "tohji" },
+        { title: "fade away", artist: "Kegøn" }
+      ];
+      const selected = mockTracks[Math.floor(Math.random() * mockTracks.length)];
+
+      document.getElementById('trackTitle').innerText = selected.title;
+      document.getElementById('artistName').innerText = selected.artist;
+      document.getElementById('songResult').classList.remove('hidden');
+
+      // Apple Musicボタンに正確な検索リンクを紐づける
+      const appleBtn = document.getElementById('appleMusicBtn');
+      appleBtn.onclick = function() {
+        openAppleMusic(selected.title, selected.artist);
+      };
+    }
+
+    // 【修正版】Apple Musicで確実に検索・移行させる関数
+    function openAppleMusic(trackName, artistName) {
+      const query = encodeURIComponent(`${artistName} ${trackName}`);
+      // Apple Musicの検索ディープリンクURL
+      const appleMusicUrl = `https://music.apple.com/jp/search?term=${query}`;
+      
+      window.open(appleMusicUrl, '_blank');
+    }
+  </script>
 </body>
 </html>
