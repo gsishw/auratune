@@ -54,7 +54,7 @@
   <main class="space-y-4">
     <div class="space-y-1 text-center">
       <h2 class="text-xl font-bold tracking-tight">感情または風景から <span class="text-purple-400">音を掘り出す</span></h2>
-      <p class="text-xs text-gray-400">写真や気分から、AIがJ-POP・洋楽・K-POP・ヒップホップ・アングラ等からおすすめを5曲提案します。</p>
+      <p class="text-xs text-gray-400">写真や気分、年代を指定して、オールジャンルからおすすめを5曲提案します。</p>
     </div>
 
     <!-- アップロードエリア -->
@@ -63,10 +63,10 @@
         <span>01. ビジュアルインプット</span>
         <span>写真 / カメラ</span>
       </div>
-      <label class="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-700 rounded-2xl cursor-pointer bg-gray-900/40 hover:bg-gray-800/50 transition relative overflow-hidden">
+      <label class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-700 rounded-2xl cursor-pointer bg-gray-900/40 hover:bg-gray-800/50 transition relative overflow-hidden">
         <img id="imagePreview" class="hidden absolute inset-0 w-full h-full object-cover opacity-60" alt="Preview">
-        <div class="flex flex-col items-center justify-center py-3 z-10">
-          <div class="w-7 h-7 mb-1 rounded-full bg-purple-600/20 text-purple-400 flex items-center justify-center text-xs">
+        <div class="flex flex-col items-center justify-center py-2 z-10">
+          <div class="w-6 h-6 mb-1 rounded-full bg-purple-600/20 text-purple-400 flex items-center justify-center text-xs">
             ☁️
           </div>
           <p id="uploadText" class="text-xs text-gray-400"><span class="font-semibold text-purple-400">タップして写真選択</span></p>
@@ -75,18 +75,32 @@
       </label>
     </div>
 
-    <!-- テキストインプットエリア -->
-    <div class="space-y-2">
+    <!-- 02. 年代フィルターエリア -->
+    <div class="space-y-1.5">
       <div class="flex justify-between text-xs text-gray-400 px-1">
-        <span>02. 気分・感情インプット</span>
+        <span>02. 年代フィルター</span>
+        <span>時代の指定</span>
+      </div>
+      <div class="grid grid-cols-4 gap-1.5">
+        <button type="button" onclick="setEra('all', this)" class="era-btn py-1.5 bg-purple-600 text-white text-xs font-semibold rounded-lg transition border border-purple-500">すべて</button>
+        <button type="button" onclick="setEra('80s-90s', this)" class="era-btn py-1.5 bg-gray-900 hover:bg-gray-800 text-gray-300 text-xs font-semibold rounded-lg transition border border-gray-800">80-90s</button>
+        <button type="button" onclick="setEra('00s-10s', this)" class="era-btn py-1.5 bg-gray-900 hover:bg-gray-800 text-gray-300 text-xs font-semibold rounded-lg transition border border-gray-800">00-10s</button>
+        <button type="button" onclick="setEra('latest', this)" class="era-btn py-1.5 bg-gray-900 hover:bg-gray-800 text-gray-300 text-xs font-semibold rounded-lg transition border border-gray-800">最新 / アンダー</button>
+      </div>
+    </div>
+
+    <!-- 03. テキストインプットエリア -->
+    <div class="space-y-1.5">
+      <div class="flex justify-between text-xs text-gray-400 px-1">
+        <span>03. 気分・感情インプット</span>
         <span>テキスト / タグ</span>
       </div>
-      <input type="text" id="moodInput" placeholder="例: 気分が上がる曲、深夜ドライブ、エモい洋楽..." value="気分が上がる曲" class="w-full p-3 bg-gray-900/80 border border-gray-800 rounded-xl text-sm focus:outline-none focus:border-purple-500 text-gray-200">
+      <input type="text" id="moodInput" placeholder="例: 深夜のドライブ、切ない気分、アッパーな曲..." value="気分が上がる曲" class="w-full p-3 bg-gray-900/80 border border-gray-800 rounded-xl text-sm focus:outline-none focus:border-purple-500 text-gray-200">
     </div>
 
     <!-- 検索ボタン -->
     <button id="searchBtn" onclick="analyzeAura()" class="w-full py-3.5 px-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold rounded-xl shadow-lg transition text-sm flex items-center justify-center gap-2">
-      <span id="btnIcon">✨</span> <span id="btnText">この雰囲気で曲を探す（5曲提案）</span>
+      <span id="btnIcon">✨</span> <span id="btnText">この条件で曲を探す（5曲提案）</span>
     </button>
 
     <!-- 結果リスト表示エリア（最大5曲） -->
@@ -104,6 +118,7 @@
 
   <script>
     let base64Image = null;
+    let selectedEra = 'all';
 
     window.onload = function() {
       const savedKey = localStorage.getItem('gemini_api_key');
@@ -123,6 +138,14 @@
       alert('APIキーを保存しました！');
     }
 
+    function setEra(era, btn) {
+      selectedEra = era;
+      document.querySelectorAll('.era-btn').forEach(b => {
+        b.className = "era-btn py-1.5 bg-gray-900 hover:bg-gray-800 text-gray-300 text-xs font-semibold rounded-lg transition border border-gray-800";
+      });
+      btn.className = "era-btn py-1.5 bg-purple-600 text-white text-xs font-semibold rounded-lg transition border border-purple-500";
+    }
+
     function handleImage(event) {
       const file = event.target.files[0];
       if (file) {
@@ -139,12 +162,13 @@
     }
 
     const fallbackDatabase = [
-      { title: "アイドル", artist: "YOASOBI", genre: "J-POP", bpm: "166", desc: "圧倒的な疾走感とキャッチーなメロディ。気分を最高潮に上げる大ヒットトラック。" },
-      { title: "怪獣の花唄", artist: "Vaundy", genre: "J-POP / Rock", bpm: "150", desc: "エモーショナルなボーカルと爽快なドライブ感のあるロックサウンド。" },
-      { title: "Supernova", artist: "aespa", genre: "K-POP", bpm: "125", desc: "重厚なベースと先進的なサウンドデザインが魅力的なアッパーチューン。" },
-      { title: "Blinding Lights", artist: "The Weeknd", genre: "洋楽 / Synthpop", bpm: "171", desc: "80s感あふれるシンセサウンドとレトロフューチャーな疾走感。" },
-      { title: "Awake", artist: "tohji", genre: "J-HipHop", bpm: "135", desc: "独特の浮遊感とパワフルなビートが交差するアッパーチューン。" },
-      { title: "ephemeral", artist: "lilbesh ramko", genre: "Hyperpop", bpm: "170", desc: "エモーショナルな旋律と疾走感ある最先端ハイパーポップ。" }
+      { title: "Blinding Lights", artist: "The Weeknd", genre: "80s Synthpop", bpm: "171", era: "80s-90s", desc: "80s感あふれるシンセサウンドとレトロフューチャーな疾走感。" },
+      { title: "Starboy", artist: "The Weeknd ft. Daft Punk", genre: "00s-10s Pop", bpm: "186", era: "00s-10s", desc: "スタイリッシュなビートとダークでクールな雰囲気。" },
+      { title: "アイドル", artist: "YOASOBI", genre: "J-POP", bpm: "166", era: "latest", desc: "圧倒的な疾走感とキャッチーなメロディ。気分を最高潮に上げる大ヒットトラック。" },
+      { title: "怪獣の花唄", artist: "Vaundy", genre: "J-POP / Rock", bpm: "150", era: "latest", desc: "エモーショナルなボーカルと爽快なドライブ感のあるロックサウンド。" },
+      { title: "Supernova", artist: "aespa", genre: "K-POP", bpm: "125", era: "latest", desc: "重厚なベースと先進的なサウンドデザインが魅力的なアッパーチューン。" },
+      { title: "Awake", artist: "tohji", genre: "Underground / HipHop", bpm: "135", era: "latest", desc: "独特の浮遊感とパワフルなビートが交差するアッパーチューン。" },
+      { title: "ephemeral", artist: "lilbesh ramko", genre: "Hyperpop", bpm: "170", era: "latest", desc: "エモーショナルな旋律と疾走感ある最先端ハイパーポップ。" }
     ];
 
     async function analyzeAura() {
@@ -155,7 +179,7 @@
 
       if (apiKey) {
         try {
-          const tracks = await fetchGeminiRecommendations(apiKey, moodText, base64Image);
+          const tracks = await fetchGeminiRecommendations(apiKey, moodText, selectedEra, base64Image);
           renderTracks(tracks);
         } catch (error) {
           console.error("AI Error:", error);
@@ -180,16 +204,20 @@
       } else {
         btn.disabled = false;
         document.getElementById('btnIcon').innerText = "✨";
-        document.getElementById('btnText').innerText = "この雰囲気で曲を探す（5曲提案）";
+        document.getElementById('btnText').innerText = "この条件で曲を探す（5曲提案）";
       }
     }
 
-    async function fetchGeminiRecommendations(apiKey, textPrompt, imageBase64) {
+    async function fetchGeminiRecommendations(apiKey, textPrompt, era, imageBase64) {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
+      const eraDesc = era === '80s-90s' ? '1980〜1990年代の楽曲' : era === '00s-10s' ? '2000〜2010年代の楽曲' : era === 'latest' ? '最新トレンド・インディーズ・アンダーグラウンド・ハイパーポップ' : '全年代の幅広い楽曲';
+
       const prompt = `あなたはセンス抜群の音楽ディガーです。
-以下の入力（画像および/または気分テキスト：「${textPrompt}」）の雰囲気に完全にマッチするおすすめの楽曲を【必ず5曲】提案してください。
-対象ジャンル: J-POP, 洋楽, K-POP, ヒップホップ, アングラ, ハイパーポップなど全般。
+以下の条件に完全にマッチするおすすめの楽曲を【必ず5曲】提案してください。
+- ターゲット年代・スタイル: ${eraDesc}
+- 気分・テキスト: 「${textPrompt}」
+- 画像が添付されている場合はその視覚的雰囲気も反映してください。
 
 回答は以下の純粋なJSON配列フォーマット（Markdown記法なし）のみで返してください:
 [
@@ -198,7 +226,7 @@
     "artist": "アーティスト名",
     "genre": "ジャンル",
     "bpm": "推定BPM",
-    "desc": "この雰囲気や写真に選曲された理由（1〜2文）"
+    "desc": "この選曲理由（1〜2文）"
   }
 ]`;
 
@@ -247,7 +275,6 @@
           <p class="text-[11px] text-gray-300 bg-black/40 p-2 rounded-lg border border-gray-800/80">
             ${track.desc}
           </p>
-          <!-- サブスクリンクボタン群（Apple Music / Spotify / LINE MUSIC） -->
           <div class="grid grid-cols-3 gap-1.5 pt-1">
             <button onclick="openStreaming('apple', '${track.title}', '${track.artist}')" class="py-2 bg-gray-800 hover:bg-gray-700 text-[10px] font-semibold rounded-lg text-center transition flex items-center justify-center gap-1 text-white">
               <span></span> Apple
@@ -267,11 +294,16 @@
     }
 
     function renderFallback() {
-      const shuffled = [...fallbackDatabase].sort(() => 0.5 - Math.random());
+      // 選択された年代に合うものをフィルタリング、なければ全体から
+      let filtered = fallbackDatabase;
+      if (selectedEra !== 'all') {
+        filtered = fallbackDatabase.filter(t => t.era === selectedEra);
+        if (filtered.length === 0) filtered = fallbackDatabase;
+      }
+      const shuffled = [...filtered].sort(() => 0.5 - Math.random());
       renderTracks(shuffled.slice(0, 5));
     }
 
-    // 各サブスクの検索ページを開く処理
     function openStreaming(platform, trackName, artistName) {
       const query = encodeURIComponent(`${artistName} ${trackName}`);
       let url = '';
