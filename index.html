@@ -29,14 +29,32 @@
       <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm">🎶</div>
       <h1 class="text-lg font-bold tracking-wider bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">AuraTune</h1>
     </div>
-    <span class="text-xs px-2 py-0.5 rounded-full bg-purple-900/60 text-purple-300 border border-purple-700/50">BETA</span>
+    <div class="flex items-center gap-2">
+      <button onclick="toggleApiKeyModal()" class="text-xs bg-gray-800 border border-gray-700 hover:bg-gray-700 px-2.5 py-1 rounded-lg text-gray-300">
+        ⚙️ API設定
+      </button>
+      <span class="text-xs px-2 py-0.5 rounded-full bg-purple-900/60 text-purple-300 border border-purple-700/50">AI READY</span>
+    </div>
   </header>
+
+  <!-- APIキー設定モーダル -->
+  <div id="apiModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5 w-full max-w-sm space-y-4">
+      <h3 class="font-bold text-sm text-purple-400">Gemini API Key 設定</h3>
+      <p class="text-xs text-gray-400">Google AI Studioで取得したAPI Keyを入力すると、AIによるリアルタイム楽曲解析が有効になります。</p>
+      <input type="password" id="apiKeyInput" placeholder="AIzaSy..." class="w-full p-2.5 bg-black border border-gray-800 rounded-xl text-xs focus:outline-none focus:border-purple-500 text-gray-200">
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="toggleApiKeyModal()" class="px-3 py-1.5 text-xs text-gray-400 hover:text-white">キャンセル</button>
+        <button onclick="saveApiKey()" class="px-4 py-1.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold rounded-lg">保存</button>
+      </div>
+    </div>
+  </div>
 
   <!-- メインコンテンツ -->
   <main class="space-y-4">
     <div class="space-y-1 text-center">
       <h2 class="text-xl font-bold tracking-tight">感情または風景から <span class="text-purple-400">音を掘り出す</span></h2>
-      <p class="text-xs text-gray-400">写真または今の気分を入力してください。AIがアングラ・ハイパーポップ名曲を最大5曲提案します。</p>
+      <p class="text-xs text-gray-400">写真や気分から、AIがJ-POP・洋楽・K-POP・ヒップホップ・アングラ等からおすすめを5曲提案します。</p>
     </div>
 
     <!-- アップロードエリア -->
@@ -45,14 +63,15 @@
         <span>01. ビジュアルインプット</span>
         <span>写真 / カメラ</span>
       </div>
-      <label class="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-700 rounded-2xl cursor-pointer bg-gray-900/40 hover:bg-gray-800/50 transition">
-        <div class="flex flex-col items-center justify-center py-3">
+      <label class="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-700 rounded-2xl cursor-pointer bg-gray-900/40 hover:bg-gray-800/50 transition relative overflow-hidden">
+        <img id="imagePreview" class="hidden absolute inset-0 w-full h-full object-cover opacity-60" alt="Preview">
+        <div class="flex flex-col items-center justify-center py-3 z-10">
           <div class="w-7 h-7 mb-1 rounded-full bg-purple-600/20 text-purple-400 flex items-center justify-center text-xs">
             ☁️
           </div>
-          <p class="text-xs text-gray-400"><span class="font-semibold text-purple-400">タップして写真選択</span></p>
+          <p id="uploadText" class="text-xs text-gray-400"><span class="font-semibold text-purple-400">タップして写真選択</span></p>
         </div>
-        <input type="file" id="imageInput" accept="image/*" class="hidden">
+        <input type="file" id="imageInput" accept="image/*" class="hidden" onchange="handleImage(event)">
       </label>
     </div>
 
@@ -62,19 +81,19 @@
         <span>02. 気分・感情インプット</span>
         <span>テキスト / タグ</span>
       </div>
-      <input type="text" id="moodInput" placeholder="例: 日本の気分が上がる曲、深夜ドライブ..." value="日本の気分が上がる曲" class="w-full p-3 bg-gray-900/80 border border-gray-800 rounded-xl text-sm focus:outline-none focus:border-purple-500 text-gray-200">
+      <input type="text" id="moodInput" placeholder="例: 気分が上がる曲、深夜ドライブ、エモい洋楽..." value="気分が上がる曲" class="w-full p-3 bg-gray-900/80 border border-gray-800 rounded-xl text-sm focus:outline-none focus:border-purple-500 text-gray-200">
     </div>
 
     <!-- 検索ボタン -->
-    <button onclick="analyzeAura()" class="w-full py-3.5 px-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold rounded-xl shadow-lg transition text-sm flex items-center justify-center gap-2">
-      <span>✨</span> この雰囲気で曲を探す（最大5曲）
+    <button id="searchBtn" onclick="analyzeAura()" class="w-full py-3.5 px-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold rounded-xl shadow-lg transition text-sm flex items-center justify-center gap-2">
+      <span id="btnIcon">✨</span> <span id="btnText">この雰囲気で曲を探す（5曲提案）</span>
     </button>
 
-    <!-- 結果リスト表示エリア（最大5曲分を格納） -->
+    <!-- 結果リスト表示エリア（最大5曲） -->
     <div id="songResultsContainer" class="hidden space-y-3">
-      <h3 class="text-xs font-semibold text-purple-400 tracking-wider px-1">RECOMMENDED TRACKS (MAX 5)</h3>
+      <h3 class="text-xs font-semibold text-purple-400 tracking-wider px-1">RECOMMENDED TRACKS (5 SONGS)</h3>
       <div id="tracksList" class="space-y-3">
-        <!-- 動的に5曲分がここに挿入されます -->
+        <!-- 動的に5曲がここに挿入されます -->
       </div>
     </div>
   </main>
@@ -84,29 +103,149 @@
   </footer>
 
   <script>
-    // 邦楽・ハイパーポップ・アングラに特化したデータベース（全5曲）
-    const japaneseTracks = [
-      { title: "ephemeral", artist: "lilbesh ramko", bpm: "170", desc: "エモーショナルな旋律と疾走感あるハイパーポップ。" },
-      { title: "Awake", artist: "tohji", bpm: "135", desc: "独特の浮遊感とパワフルなビートが交差するアッパーチューン。" },
-      { title: "fade away", artist: "Kegøn", bpm: "150", desc: "切なさとテンションが同居するエモいバイブス。" },
-      { title: "FLASH", artist: "lazydoll", bpm: "160", desc: "キラキラした電子音とエッジの効いたベースライン。" },
-      { title: "PULL UP", artist: "スターキッズ", bpm: "140", desc: "圧倒的なエネルギーとキャッチーなフック。" }
+    let base64Image = null;
+
+    // 起動時に保存済みAPIキーを読み込み
+    window.onload = function() {
+      const savedKey = localStorage.getItem('gemini_api_key');
+      if (savedKey) {
+        document.getElementById('apiKeyInput').value = savedKey;
+      }
+    };
+
+    function toggleApiKeyModal() {
+      document.getElementById('apiModal').classList.toggle('hidden');
+    }
+
+    function saveApiKey() {
+      const key = document.getElementById('apiKeyInput').value.trim();
+      localStorage.setItem('gemini_api_key', key);
+      toggleApiKeyModal();
+      alert('APIキーを保存しました！');
+    }
+
+    function handleImage(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const preview = document.getElementById('imagePreview');
+          preview.src = e.target.result;
+          preview.classList.remove('hidden');
+          document.getElementById('uploadText').innerText = "写真選択済み";
+          base64Image = e.target.result.split(',')[1]; // Base64抽出
+        }
+        reader.readAsDataURL(file);
+      }
+    }
+
+    // デフォルトデータベース（APIキー未設定時用）
+    const fallbackDatabase = [
+      { title: "アイドル", artist: "YOASOBI", genre: "J-POP", bpm: "166", desc: "圧倒的な疾走感とキャッチーなメロディ。気分を最高潮に上げる大ヒットトラック。" },
+      { title: "怪獣の花唄", artist: "Vaundy", genre: "J-POP / Rock", bpm: "150", desc: "エモーショナルなボーカルと爽快なドライブ感のあるロックサウンド。" },
+      { title: "Supernova", artist: "aespa", genre: "K-POP", bpm: "125", desc: "重厚なベースと先進的なサウンドデザインが魅力的なアッパーチューン。" },
+      { title: "Blinding Lights", artist: "The Weeknd", genre: "洋楽 / Synthpop", bpm: "171", desc: "80s感あふれるシンセサウンドとレトロフューチャーな疾走感。" },
+      { title: "Awake", artist: "tohji", genre: "J-HipHop", bpm: "135", desc: "独特の浮遊感とパワフルなビートが交差するアッパーチューン。" },
+      { title: "ephemeral", artist: "lilbesh ramko", genre: "Hyperpop", bpm: "170", desc: "エモーショナルな旋律と疾走感ある最先端ハイパーポップ。" }
     ];
 
-    function analyzeAura() {
-      const container = document.getElementById('tracksList');
-      container.innerHTML = ''; // 前回の結果をクリア
+    async function analyzeAura() {
+      const apiKey = localStorage.getItem('gemini_api_key');
+      const moodText = document.getElementById('moodInput').value;
 
-      // 固定でMAX5曲をすべてリスト表示する（またはシャッフルして最大5曲）
-      // ここでは用意した5曲をそのまま綺麗にリスト化するよ
-      japaneseTracks.forEach((track, index) => {
+      // ボタンをローディング表示に変更
+      setLoading(true);
+
+      if (apiKey) {
+        // AI（Gemini API）で解析
+        try {
+          const tracks = await fetchGeminiRecommendations(apiKey, moodText, base64Image);
+          renderTracks(tracks);
+        } catch (error) {
+          console.error("AI Error:", error);
+          alert("AI解析でエラーが発生したため、通常の検索結果を表示します。");
+          renderFallback();
+        }
+      } else {
+        // APIキーなしの場合はモックDBからランダム5曲
+        setTimeout(() => {
+          renderFallback();
+        }, 600);
+      }
+
+      setLoading(false);
+    }
+
+    function setLoading(isLoading) {
+      const btn = document.getElementById('searchBtn');
+      if (isLoading) {
+        btn.disabled = true;
+        document.getElementById('btnIcon').innerText = "⏳";
+        document.getElementById('btnText').innerText = "AIがバイブスを解析中...";
+      } else {
+        btn.disabled = false;
+        document.getElementById('btnIcon').innerText = "✨";
+        document.getElementById('btnText').innerText = "この雰囲気で曲を探す（5曲提案）";
+      }
+    }
+
+    async function fetchGeminiRecommendations(apiKey, textPrompt, imageBase64) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+      const prompt = `あなたはセンス抜群の音楽ディガーです。
+以下の入力（画像および/または気分テキスト：「${textPrompt}」）の雰囲気に完全にマッチするおすすめの楽曲を【必ず5曲】提案してください。
+対象ジャンル: J-POP, 洋楽, K-POP, ヒップホップ, アングラ, ハイパーポップなど全般。
+
+回答は以下の純粋なJSON配列フォーマット（Markdown記法なし）のみで返してください:
+[
+  {
+    "title": "曲名",
+    "artist": "アーティスト名",
+    "genre": "ジャンル",
+    "bpm": "推定BPM",
+    "desc": "この雰囲気や写真に選曲された理由（1〜2文）"
+  }
+]`;
+
+      const contents = [{
+        parts: [{ text: prompt }]
+      }];
+
+      if (imageBase64) {
+        contents[0].parts.push({
+          inline_data: {
+            mime_type: "image/jpeg",
+            data: imageBase64
+          }
+        });
+      }
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contents })
+      });
+
+      const data = await response.json();
+      const rawText = data.candidates[0].content.parts[0].text;
+      
+      // JSONクリーンアップしてパース
+      const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+      return JSON.parse(cleanJson);
+    }
+
+    function renderTracks(tracks) {
+      const container = document.getElementById('tracksList');
+      container.innerHTML = '';
+
+      tracks.slice(0, 5).forEach((track, index) => {
         const card = document.createElement('div');
         card.className = "bg-gray-900/90 p-3.5 rounded-xl border border-purple-900/40 shadow-md space-y-2";
         
         card.innerHTML = `
           <div class="flex justify-between items-center border-b border-gray-800 pb-1.5">
-            <span class="text-[10px] font-bold text-purple-400">#0${index + 1}</span>
-            <span class="text-[10px] bg-purple-900/50 text-purple-300 px-2 py-0.5 rounded">BPM: ${track.bpm}</span>
+            <span class="text-[10px] font-bold text-purple-400">#0${index + 1} • ${track.genre || 'Music'}</span>
+            <span class="text-[10px] bg-purple-900/50 text-purple-300 px-2 py-0.5 rounded">BPM: ${track.bpm || '--'}</span>
           </div>
           <div class="space-y-0.5">
             <div class="font-bold text-sm text-white">${track.title}</div>
@@ -122,8 +261,12 @@
         container.appendChild(card);
       });
 
-      // 結果コンテナを表示
       document.getElementById('songResultsContainer').classList.remove('hidden');
+    }
+
+    function renderFallback() {
+      const shuffled = [...fallbackDatabase].sort(() => 0.5 - Math.random());
+      renderTracks(shuffled.slice(0, 5));
     }
 
     function openAppleMusic(trackName, artistName) {
@@ -134,5 +277,3 @@
   </script>
 </body>
 </html>
-　
- 
