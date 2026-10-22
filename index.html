@@ -105,7 +105,6 @@
   <script>
     let base64Image = null;
 
-    // 起動時に保存済みAPIキーを読み込み
     window.onload = function() {
       const savedKey = localStorage.getItem('gemini_api_key');
       if (savedKey) {
@@ -133,13 +132,12 @@
           preview.src = e.target.result;
           preview.classList.remove('hidden');
           document.getElementById('uploadText').innerText = "写真選択済み";
-          base64Image = e.target.result.split(',')[1]; // Base64抽出
+          base64Image = e.target.result.split(',')[1];
         }
         reader.readAsDataURL(file);
       }
     }
 
-    // デフォルトデータベース（APIキー未設定時用）
     const fallbackDatabase = [
       { title: "アイドル", artist: "YOASOBI", genre: "J-POP", bpm: "166", desc: "圧倒的な疾走感とキャッチーなメロディ。気分を最高潮に上げる大ヒットトラック。" },
       { title: "怪獣の花唄", artist: "Vaundy", genre: "J-POP / Rock", bpm: "150", desc: "エモーショナルなボーカルと爽快なドライブ感のあるロックサウンド。" },
@@ -153,11 +151,9 @@
       const apiKey = localStorage.getItem('gemini_api_key');
       const moodText = document.getElementById('moodInput').value;
 
-      // ボタンをローディング表示に変更
       setLoading(true);
 
       if (apiKey) {
-        // AI（Gemini API）で解析
         try {
           const tracks = await fetchGeminiRecommendations(apiKey, moodText, base64Image);
           renderTracks(tracks);
@@ -167,7 +163,6 @@
           renderFallback();
         }
       } else {
-        // APIキーなしの場合はモックDBからランダム5曲
         setTimeout(() => {
           renderFallback();
         }, 600);
@@ -228,8 +223,6 @@
 
       const data = await response.json();
       const rawText = data.candidates[0].content.parts[0].text;
-      
-      // JSONクリーンアップしてパース
       const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
       return JSON.parse(cleanJson);
     }
@@ -254,9 +247,18 @@
           <p class="text-[11px] text-gray-300 bg-black/40 p-2 rounded-lg border border-gray-800/80">
             ${track.desc}
           </p>
-          <button onclick="openAppleMusic('${track.title}', '${track.artist}')" class="w-full py-2 bg-gradient-to-r from-gray-800 to-gray-700 hover:from-gray-700 hover:to-gray-600 text-xs font-semibold rounded-lg text-center transition flex items-center justify-center gap-2 text-white">
-            <span></span> Apple Musicで聴く
-          </button>
+          <!-- サブスクリンクボタン群（Apple Music / Spotify / LINE MUSIC） -->
+          <div class="grid grid-cols-3 gap-1.5 pt-1">
+            <button onclick="openStreaming('apple', '${track.title}', '${track.artist}')" class="py-2 bg-gray-800 hover:bg-gray-700 text-[10px] font-semibold rounded-lg text-center transition flex items-center justify-center gap-1 text-white">
+              <span></span> Apple
+            </button>
+            <button onclick="openStreaming('spotify', '${track.title}', '${track.artist}')" class="py-2 bg-emerald-950/60 border border-emerald-800/50 hover:bg-emerald-900/60 text-[10px] font-semibold rounded-lg text-center transition flex items-center justify-center gap-1 text-emerald-300">
+              <span>💚</span> Spotify
+            </button>
+            <button onclick="openStreaming('line', '${track.title}', '${track.artist}')" class="py-2 bg-green-950/60 border border-green-800/50 hover:bg-green-900/60 text-[10px] font-semibold rounded-lg text-center transition flex items-center justify-center gap-1 text-green-300">
+              <span>💬</span> LINE
+            </button>
+          </div>
         `;
         container.appendChild(card);
       });
@@ -269,11 +271,22 @@
       renderTracks(shuffled.slice(0, 5));
     }
 
-    function openAppleMusic(trackName, artistName) {
+    // 各サブスクの検索ページを開く処理
+    function openStreaming(platform, trackName, artistName) {
       const query = encodeURIComponent(`${artistName} ${trackName}`);
-      const appleMusicUrl = `https://music.apple.com/jp/search?term=${query}`;
-      window.open(appleMusicUrl, '_blank');
+      let url = '';
+
+      if (platform === 'apple') {
+        url = `https://music.apple.com/jp/search?term=${query}`;
+      } else if (platform === 'spotify') {
+        url = `https://open.spotify.com/search/${query}`;
+      } else if (platform === 'line') {
+        url = `https://music.line.me/search/search?query=${query}`;
+      }
+
+      window.open(url, '_blank');
     }
   </script>
 </body>
 </html>
+
