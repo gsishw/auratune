@@ -21,7 +21,7 @@
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between p-4 max-w-md mx-auto">
+<body class="min-h-screen flex flex-col justify-between p-4 max-w-md mx-auto space-y-4">
 
   <!-- ヘッダー -->
   <header class="flex items-center justify-between py-3 border-b border-gray-800">
@@ -33,10 +33,10 @@
   </header>
 
   <!-- メインコンテンツ -->
-  <main class="my-auto space-y-6 py-4">
-    <div class="space-y-2 text-center">
-      <h2 class="text-xl font-bold tracking-tight">感情または風景から<span class="text-purple-400">音を掘り出す</span></h2>
-      <p class="text-xs text-gray-400">写真または今の気分を入力してください。AIが雰囲気を解析し、普段出会えないインディーズ・アングラ名曲を提案します。</p>
+  <main class="space-y-4">
+    <div class="space-y-1 text-center">
+      <h2 class="text-xl font-bold tracking-tight">感情または風景から <span class="text-purple-400">音を掘り出す</span></h2>
+      <p class="text-xs text-gray-400">写真または今の気分を入力してください。AIがアングラ・ハイパーポップ名曲を最大5曲提案します。</p>
     </div>
 
     <!-- アップロードエリア -->
@@ -45,89 +45,94 @@
         <span>01. ビジュアルインプット</span>
         <span>写真 / カメラ</span>
       </div>
-      <label class="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-gray-700 rounded-2xl cursor-pointer bg-gray-900/40 hover:bg-gray-800/50 transition">
-        <div class="flex flex-col items-center justify-center pt-5 pb-6">
-          <div class="w-10 h-10 mb-2 rounded-full bg-purple-600/20 text-purple-400 flex items-center justify-center">
+      <label class="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-700 rounded-2xl cursor-pointer bg-gray-900/40 hover:bg-gray-800/50 transition">
+        <div class="flex flex-col items-center justify-center py-3">
+          <div class="w-7 h-7 mb-1 rounded-full bg-purple-600/20 text-purple-400 flex items-center justify-center text-xs">
             ☁️
           </div>
-          <p class="text-xs text-gray-400"><span class="font-semibold text-purple-400">タップして写真を選択</span> または撮影</p>
+          <p class="text-xs text-gray-400"><span class="font-semibold text-purple-400">タップして写真選択</span></p>
         </div>
-        <input type="file" id="imageInput" accept="image/*" class="hidden" onchange="handleImage(event)">
+        <input type="file" id="imageInput" accept="image/*" class="hidden">
       </label>
     </div>
 
-    <!-- プレビューと結果表示エリア -->
-    <div id="resultArea" class="hidden space-y-4">
-      <div id="previewContainer" class="w-full h-40 rounded-xl overflow-hidden bg-black border border-gray-800 relative">
-        <img id="imagePreview" class="w-full h-full object-cover" alt="Selected">
+    <!-- テキストインプットエリア -->
+    <div class="space-y-2">
+      <div class="flex justify-between text-xs text-gray-400 px-1">
+        <span>02. 気分・感情インプット</span>
+        <span>テキスト / タグ</span>
       </div>
-      
-      <button onclick="analyzeAura()" class="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold rounded-xl shadow-lg transition text-sm">
-        この雰囲気で曲を探す ✨
-      </button>
+      <input type="text" id="moodInput" placeholder="例: 日本の気分が上がる曲、深夜ドライブ..." value="日本の気分が上がる曲" class="w-full p-3 bg-gray-900/80 border border-gray-800 rounded-xl text-sm focus:outline-none focus:border-purple-500 text-gray-200">
     </div>
 
-    <!-- 検索結果（仮モック・AI提案用） -->
-    <div id="songResult" class="hidden space-y-3 bg-gray-900/80 p-4 rounded-xl border border-gray-800">
-      <h3 class="text-xs font-semibold text-purple-400 tracking-wider">RECOMMENDED TRACK</h3>
-      <div class="space-y-1">
-        <div id="trackTitle" class="font-bold text-base">---</div>
-        <div id="artistName" class="text-xs text-gray-400">---</div>
-      </div>
-      <div class="flex gap-2 pt-2">
-        <button id="appleMusicBtn" class="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-xs font-semibold rounded-lg text-center transition">
-           Apple Musicで聴く
-        </button>
+    <!-- 検索ボタン -->
+    <button onclick="analyzeAura()" class="w-full py-3.5 px-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold rounded-xl shadow-lg transition text-sm flex items-center justify-center gap-2">
+      <span>✨</span> この雰囲気で曲を探す（最大5曲）
+    </button>
+
+    <!-- 結果リスト表示エリア（最大5曲分を格納） -->
+    <div id="songResultsContainer" class="hidden space-y-3">
+      <h3 class="text-xs font-semibold text-purple-400 tracking-wider px-1">RECOMMENDED TRACKS (MAX 5)</h3>
+      <div id="tracksList" class="space-y-3">
+        <!-- 動的に5曲分がここに挿入されます -->
       </div>
     </div>
   </main>
 
-  <!-- フッター -->
   <footer class="text-center py-2 text-[10px] text-gray-600">
     &copy; 2026 AuraTune
   </footer>
 
   <script>
-    function handleImage(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          document.getElementById('imagePreview').src = e.target.result;
-          document.getElementById('resultArea').classList.remove('hidden');
-        }
-        reader.readAsDataURL(file);
-      }
-    }
+    // 邦楽・ハイパーポップ・アングラに特化したデータベース（全5曲）
+    const japaneseTracks = [
+      { title: "ephemeral", artist: "lilbesh ramko", bpm: "170", desc: "エモーショナルな旋律と疾走感あるハイパーポップ。" },
+      { title: "Awake", artist: "tohji", bpm: "135", desc: "独特の浮遊感とパワフルなビートが交差するアッパーチューン。" },
+      { title: "fade away", artist: "Kegøn", bpm: "150", desc: "切なさとテンションが同居するエモいバイブス。" },
+      { title: "FLASH", artist: "lazydoll", bpm: "160", desc: "キラキラした電子音とエッジの効いたベースライン。" },
+      { title: "PULL UP", artist: "スターキッズ", bpm: "140", desc: "圧倒的なエネルギーとキャッチーなフック。" }
+    ];
 
     function analyzeAura() {
-      // 解析中のモック動作 ＆ サンプルとしてアングラ・インディーズ枠の曲を設定
-      const mockTracks = [
-        { title: "ephemeral", artist: "lilbesh ramko" },
-        { title: "Awake", artist: "tohji" },
-        { title: "fade away", artist: "Kegøn" }
-      ];
-      const selected = mockTracks[Math.floor(Math.random() * mockTracks.length)];
+      const container = document.getElementById('tracksList');
+      container.innerHTML = ''; // 前回の結果をクリア
 
-      document.getElementById('trackTitle').innerText = selected.title;
-      document.getElementById('artistName').innerText = selected.artist;
-      document.getElementById('songResult').classList.remove('hidden');
+      // 固定でMAX5曲をすべてリスト表示する（またはシャッフルして最大5曲）
+      // ここでは用意した5曲をそのまま綺麗にリスト化するよ
+      japaneseTracks.forEach((track, index) => {
+        const card = document.createElement('div');
+        card.className = "bg-gray-900/90 p-3.5 rounded-xl border border-purple-900/40 shadow-md space-y-2";
+        
+        card.innerHTML = `
+          <div class="flex justify-between items-center border-b border-gray-800 pb-1.5">
+            <span class="text-[10px] font-bold text-purple-400">#0${index + 1}</span>
+            <span class="text-[10px] bg-purple-900/50 text-purple-300 px-2 py-0.5 rounded">BPM: ${track.bpm}</span>
+          </div>
+          <div class="space-y-0.5">
+            <div class="font-bold text-sm text-white">${track.title}</div>
+            <div class="text-xs text-gray-400">${track.artist}</div>
+          </div>
+          <p class="text-[11px] text-gray-300 bg-black/40 p-2 rounded-lg border border-gray-800/80">
+            ${track.desc}
+          </p>
+          <button onclick="openAppleMusic('${track.title}', '${track.artist}')" class="w-full py-2 bg-gradient-to-r from-gray-800 to-gray-700 hover:from-gray-700 hover:to-gray-600 text-xs font-semibold rounded-lg text-center transition flex items-center justify-center gap-2 text-white">
+            <span></span> Apple Musicで聴く
+          </button>
+        `;
+        container.appendChild(card);
+      });
 
-      // Apple Musicボタンに正確な検索リンクを紐づける
-      const appleBtn = document.getElementById('appleMusicBtn');
-      appleBtn.onclick = function() {
-        openAppleMusic(selected.title, selected.artist);
-      };
+      // 結果コンテナを表示
+      document.getElementById('songResultsContainer').classList.remove('hidden');
     }
 
-    // 【修正版】Apple Musicで確実に検索・移行させる関数
     function openAppleMusic(trackName, artistName) {
       const query = encodeURIComponent(`${artistName} ${trackName}`);
-      // Apple Musicの検索ディープリンクURL
       const appleMusicUrl = `https://music.apple.com/jp/search?term=${query}`;
-      
       window.open(appleMusicUrl, '_blank');
     }
   </script>
 </body>
 </html>
+　
+ 
